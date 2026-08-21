@@ -1,0 +1,15 @@
+{
+  "name": "Vox — English Speaking Partner",
+  "short_name": "Vox",
+  "description": "Talk out loud with an AI conversation partner to build English fluency.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0B0C14",
+  "theme_color": "#0B0C14",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
