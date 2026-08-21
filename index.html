@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vox — English Speaking Partner</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0B0C14">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vox">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0B0C14;
+    --surface: #15161F;
+    --surface-2: #1E2030;
+    --ink: #F5F3EE;
+    --ink-dim: #8E90A6;
+    --coral: #FF6B4A;
+    --violet: #7C5CFF;
+    --teal: #33D9C1;
+    --danger: #FF5A6E;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 20% -10%, rgba(124,92,255,0.14), transparent 45%),
+      radial-gradient(circle at 85% 10%, rgba(255,107,74,0.10), transparent 40%),
+      var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding: 22px 16px 40px;
+    overflow-x:hidden;
+  }
+  .topbar{
+    width:100%;
+    max-width:520px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom: 10px;
+  }
+  .brand{
+    font-family:'Space Grotesk', sans-serif;
+    font-size: 21px;
+    font-weight:700;
+    letter-spacing: -0.01em;
+  }
+  .brand span{color:var(--coral);}
+  .streak{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background: var(--surface);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    color: var(--teal);
+    font-family:'JetBrains Mono', monospace;
+    border: 1px solid rgba(51,217,193,0.2);
+  }
+
+  .mode-row{
+    width:100%;
+    max-width: 520px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap: 10px;
+    margin: 6px 0 4px;
+  }
+  .mode-toggle{
+    display:flex;
+    align-items:center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    color: var(--ink-dim);
+    cursor:pointer;
+    user-select:none;
+    transition: border-color 0.2s ease, color 0.2s ease;
+  }
+  .mode-toggle.on{
+    color: var(--coral);
+    border-color: rgba(255,107,74,0.4);
+  }
+  .switch{
+    width: 30px; height: 17px;
+    border-radius: 999px;
+    background: #2C2F42;
+    position:relative;
+    transition: background 0.2s ease;
+  }
+  .switch::after{
+    content:'';
+    position:absolute;
+    width: 13px; height:13px;
+    border-radius:50%;
+    background: var(--ink-dim);
+    top:2px; left:2px;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+  .mode-toggle.on .switch{ background: rgba(255,107,74,0.3); }
+  .mode-toggle.on .switch::after{ transform: translateX(13px); background: var(--coral); }
+
+  .stage{
+    width:100%;
+    max-width:520px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    margin: 14px 0 6px;
+  }
+
+  .char-wrap{
+    position:relative;
+    width: 210px;
+    height: 210px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom: 6px;
+    cursor:pointer;
+  }
+  .char-wrap:active .mascot{ transform: scale(0.9); }
+  .halo{
+    position:absolute;
+    inset:0;
+    border-radius:50%;
+    background: radial-gradient(circle, rgba(255,107,74,0.0) 55%, transparent 70%);
+    transition: background 0.3s ease;
+  }
+  .halo.listening{ background: radial-gradient(circle, rgba(255,107,74,0.28) 0%, transparent 70%); animation: halo-pulse 1.2s ease-in-out infinite; }
+  .halo.thinking{ background: radial-gradient(circle, rgba(124,92,255,0.28) 0%, transparent 70%); animation: halo-pulse 1.6s ease-in-out infinite; }
+  .halo.speaking{ background: radial-gradient(circle, rgba(51,217,193,0.30) 0%, transparent 70%); animation: halo-pulse 0.7s ease-in-out infinite; }
+  @keyframes halo-pulse{ 0%,100%{ transform: scale(0.94); } 50%{ transform: scale(1.12); } }
+
+  svg#vox{ display:none; }
+  .mascot{
+    font-size: 96px;
+    position:relative;
+    z-index:2;
+    line-height:1;
+    user-select:none;
+    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.4));
+    transition: transform 0.2s ease;
+  }
+  .mascot.listening{ animation: mascot-wiggle 0.6s ease-in-out infinite; }
+  .mascot.thinking{ animation: mascot-tilt 1.6s ease-in-out infinite; }
+  .mascot.speaking{ animation: mascot-talk 0.35s ease-in-out infinite; }
+  @keyframes mascot-wiggle{
+    0%,100%{ transform: rotate(-6deg) scale(1); }
+    50%{ transform: rotate(6deg) scale(1.05); }
+  }
+  @keyframes mascot-tilt{
+    0%,100%{ transform: rotate(-4deg); }
+    50%{ transform: rotate(4deg); }
+  }
+  @keyframes mascot-talk{
+    0%,100%{ transform: scale(1) translateY(0); }
+    50%{ transform: scale(1.08) translateY(-6px); }
+  }
+
+  .bars{
+    position:absolute;
+    bottom: 8px;
+    display:flex;
+    gap: 4px;
+    align-items:flex-end;
+    height: 26px;
+    z-index:2;
+    opacity:0;
+    transition: opacity 0.2s ease;
+  }
+  .bars.show{ opacity:1; }
+  .bars span{
+    width: 4px;
+    border-radius: 3px;
+    background: var(--coral);
+    animation: bar-bounce 0.9s ease-in-out infinite;
+  }
+  .bars span:nth-child(1){ animation-delay: 0s; }
+  .bars span:nth-child(2){ animation-delay: 0.15s; }
+  .bars span:nth-child(3){ animation-delay: 0.3s; }
+  .bars span:nth-child(4){ animation-delay: 0.45s; }
+  .bars span:nth-child(5){ animation-delay: 0.6s; }
+  @keyframes bar-bounce{
+    0%,100%{ height: 6px; }
+    50%{ height: 24px; }
+  }
+
+  .floaters{
+    position:absolute;
+    inset: -20px;
+    pointer-events:none;
+    z-index:3;
+  }
+  .floater{
+    position:absolute;
+    font-size: 20px;
+    left: 50%; top: 50%;
+    animation: float-up 1.4s ease-out forwards;
+  }
+  @keyframes float-up{
+    0%{ opacity:0; transform: translate(-50%,-50%) scale(0.5); }
+    20%{ opacity:1; transform: translate(calc(-50% + var(--dx)), calc(-50% - 20px)) scale(1); }
+    100%{ opacity:0; transform: translate(calc(-50% + var(--dx)), calc(-50% - 90px)) scale(0.9); }
+  }
+
+  .state-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin: 8px 0 18px;
+    min-height: 16px;
+    text-align:center;
+  }
+  .state-label b{ color: var(--coral); font-weight:500; }
+
+  .mic-btn{
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: none;
+    background: var(--coral);
+    color: #0B0C14;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow: 0 6px 20px rgba(255,107,74,0.3);
+    transition: transform 0.15s ease, background 0.2s ease;
+  }
+  .mic-btn:active{ transform: scale(0.94); }
+  .mic-btn.active{ background: var(--danger); }
+  .mic-btn svg{ width:22px; height:22px; }
+
+  .transcript{
+    width:100%;
+    max-width: 520px;
+    margin-top: 22px;
+    display:flex;
+    flex-direction:column;
+    gap: 10px;
+    flex:1;
+  }
+  .bubble{
+    max-width: 84%;
+    padding: 11px 14px;
+    border-radius: 16px;
+    font-size: 14.5px;
+    line-height: 1.5;
+    animation: rise 0.25s ease;
+  }
+  @keyframes rise{ from{ opacity:0; transform: translateY(8px); } to{ opacity:1; transform: translateY(0); } }
+  .bubble.you{ align-self:flex-end; background: var(--surface-2); border-bottom-right-radius: 4px; }
+  .bubble.ai{ align-self:flex-start; background: rgba(51,217,193,0.06); border: 1px solid rgba(51,217,193,0.22); border-bottom-left-radius: 4px; }
+  .bubble .tag{ display:block; font-family:'JetBrains Mono', monospace; font-size: 10px; letter-spacing:0.06em; text-transform:uppercase; color: var(--ink-dim); margin-bottom: 4px; }
+  .bubble.ai .tag{ color: var(--teal); }
+  .bubble.you .tag{ color: var(--coral); }
+
+  .setup{
+    width:100%;
+    max-width: 520px;
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .setup h2{ font-family:'Space Grotesk', sans-serif; font-size: 17px; margin: 0 0 6px; font-weight:600; }
+  .setup p{ color: var(--ink-dim); font-size: 13px; line-height: 1.5; margin: 0 0 14px; }
+  .setup input, .setup select{
+    width:100%; background: var(--surface-2); border: 1px solid rgba(255,255,255,0.08);
+    color: var(--ink); padding: 10px 12px; border-radius: 10px;
+    font-family: 'JetBrains Mono', monospace; font-size: 13px; margin-bottom: 10px;
+  }
+  .setup button{
+    background: var(--coral); color: #0B0C14; border:none; padding: 10px 16px;
+    border-radius: 10px; font-weight:600; font-size: 13px; cursor:pointer; width:100%;
+  }
+  .empty-hint{ color: var(--ink-dim); font-size: 13px; text-align:center; margin-top: 30px; line-height:1.6; }
+  footer{ margin-top: 26px; font-size: 11px; color: #4A4C5E; text-align:center; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">Vox<span>.</span></div>
+  <div class="streak" id="streak">🔥 0 day streak</div>
+</div>
+
+<div class="mode-row">
+  <div class="mode-toggle" id="autoModeToggle">
+    <div class="switch"></div>
+    <span>Hands-free conversation mode</span>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="char-wrap" id="charWrap">
+    <div class="halo" id="halo"></div>
+    <div class="floaters" id="floaters"></div>
+    <div class="mascot" id="mascot">🦉</div>
+    <div class="bars" id="bars">
+      <span style="background:var(--coral)"></span>
+      <span style="background:var(--coral)"></span>
+      <span style="background:var(--coral)"></span>
+      <span style="background:var(--coral)"></span>
+      <span style="background:var(--coral)"></span>
+    </div>
+  </div>
+  <div class="state-label" id="stateLabel">Tap Vox to start talking</div>
+  <button class="mic-btn" id="micBtn" aria-label="Microphone">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#0B0C14" stroke-width="2">
+      <path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Z"/>
+      <path d="M19 11a7 7 0 0 1-14 0"/>
+      <path d="M12 18v3"/>
+    </svg>
+  </button>
+</div>
+
+<div class="setup" id="setup">
+  <h2>One-time setup</h2>
+  <p>Paste your free Google AI Studio API key (from aistudio.google.com/apikey — no credit card needed). Saved only in this browser.</p>
+  <input type="password" id="apiKey" placeholder="Paste your key here">
+  <select id="topic">
+    <option value="daily">Daily conversation practice</option>
+    <option value="office">Office / workplace English</option>
+    <option value="interview">Interview practice (STAR answers)</option>
+  </select>
+  <button id="saveKey">Save & Start</button>
+</div>
+
+<div class="transcript" id="transcript"></div>
+<div class="empty-hint" id="emptyHint">Your conversation will appear here. Speak naturally — pauses are fine.</div>
+
+<footer>Runs fully in your browser · speech recognition & voice via Web Speech API</footer>
+
+<script>
+const charWrap = document.getElementById('charWrap');
+const halo = document.getElementById('halo');
+const bars = document.getElementById('bars');
+const floaters = document.getElementById('floaters');
+const mascot = document.getElementById('mascot');
+const micBtn = document.getElementById('micBtn');
+const stateLabel = document.getElementById('stateLabel');
+const transcriptEl = document.getElementById('transcript');
+const emptyHint = document.getElementById('emptyHint');
+const setupEl = document.getElementById('setup');
+const apiKeyInput = document.getElementById('apiKey');
+const topicSelect = document.getElementById('topic');
+const streakEl = document.getElementById('streak');
+const autoModeToggle = document.getElementById('autoModeToggle');
+
+let apiKey = localStorage.getItem('voice_api_key') || '';
+let cachedModel = localStorage.getItem('voice_gemini_model') || null;
+let conversation = [];
+let recognizing = false;
+let recognition = null;
+let autoMode = false;
+let mouthTimer = null;
+let blinkTimer = null;
+
+const SYSTEM_PROMPTS = {
+  daily: "You are a warm, encouraging English speaking partner helping a non-native speaker (an Indian data scientist) build daily conversational fluency. Have a natural, flowing conversation on everyday topics. Keep replies SHORT (2-4 sentences) and end with a question to keep her talking. If she makes a grammar mistake, don't interrupt the flow — just naturally model the correct form in your own reply. Never lecture about grammar unless she asks.",
+  office: "You are an English speaking coach helping a Data Scientist practice workplace communication: status updates, disagreeing politely, explaining technical work simply, and meeting small talk. Play the role of a colleague or manager. Keep replies SHORT (2-4 sentences), stay in character, and occasionally throw a realistic workplace scenario at her (e.g. 'the deadline moved up, what do you tell your manager?').",
+  interview: "You are a professional interviewer conducting a mock Data Scientist / ML Engineer job interview. Ask one interview question at a time (behavioral, technical, or 'tell me about yourself' style). After she answers, give ONE brief, encouraging piece of feedback on clarity and structure (not just grammar), then ask the next question. Keep your turns SHORT."
+};
+
+// ---------- Mascot animation ----------
+const MASCOT_IDLE = '🦉';
+const MASCOT_LISTEN = '👂';
+const MASCOT_THINK = '🤔';
+const MASCOT_SPEAK = ['🗣️','😮','😊','🙂'];
+let speakFrame = 0;
+
+function setMouthIdle(){ mascot.textContent = MASCOT_IDLE; }
+function animateMouthTalking(){
+  clearInterval(mouthTimer);
+  mouthTimer = setInterval(() => {
+    mascot.textContent = MASCOT_SPEAK[speakFrame % MASCOT_SPEAK.length];
+    speakFrame++;
+  }, 260);
+}
+function stopMouth(){ clearInterval(mouthTimer); setMouthIdle(); }
+
+function popFloaters(emoji, count){
+  for(let i=0;i<count;i++){
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'floater';
+      el.textContent = emoji;
+      el.style.setProperty('--dx', (Math.random()*60-30) + 'px');
+      floaters.appendChild(el);
+      setTimeout(() => el.remove(), 1500);
+    }, i * 180);
+  }
+}
+
+function setState(state){
+  halo.className = 'halo ' + (state || '');
+  mascot.className = 'mascot ' + (state || '');
+  bars.classList.toggle('show', state === 'listening');
+  if(state === 'listening'){ stopMouth(); mascot.textContent = MASCOT_LISTEN; popFloaters('🎙️', 1); }
+  if(state === 'thinking'){ stopMouth(); mascot.textContent = MASCOT_THINK; }
+  if(state === 'speaking'){ animateMouthTalking(); popFloaters('💬', 1); }
+  if(!state){ stopMouth(); }
+}
+
+function setupStreak(){
+  const today = new Date().toDateString();
+  const last = localStorage.getItem('voice_last_practice');
+  let streak = parseInt(localStorage.getItem('voice_streak') || '0');
+  if(last !== today){
+    const y = new Date(); y.setDate(y.getDate()-1);
+    streak = (last === y.toDateString()) ? streak + 1 : 1;
+    localStorage.setItem('voice_streak', streak);
+    localStorage.setItem('voice_last_practice', today);
+  }
+  streakEl.textContent = `🔥 ${streak} day streak`;
+}
+
+if(apiKey){ setupEl.style.display = 'none'; apiKeyInput.value = apiKey; }
+
+document.getElementById('saveKey').addEventListener('click', () => {
+  const k = apiKeyInput.value.trim().replace(/['"]/g, '');
+  if(k.length < 20){ alert('That key looks too short — please re-copy it from Google AI Studio and try again.'); return; }
+  apiKey = k;
+  localStorage.setItem('voice_api_key', apiKey);
+  setupEl.style.display = 'none';
+  setupStreak();
+});
+
+autoModeToggle.addEventListener('click', () => {
+  autoMode = !autoMode;
+  autoModeToggle.classList.toggle('on', autoMode);
+  if(autoMode && apiKey && !recognizing){ startListening(); }
+});
+
+// ---------- Speech recognition ----------
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if(SpeechRecognition){
+  recognition = new SpeechRecognition();
+  recognition.lang = 'en-IN';
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onresult = (e) => {
+    const text = e.results[0][0].transcript;
+    addBubble('you', text);
+    getAIReply(text);
+  };
+  recognition.onend = () => {
+    recognizing = false;
+    if(!stateLabel.dataset.busy){ setState(null); }
+    micBtn.classList.remove('active');
+  };
+  recognition.onerror = (e) => {
+    stateLabel.textContent = 'Mic error — tap Vox to try again';
+    recognizing = false;
+    setState(null);
+    micBtn.classList.remove('active');
+  };
+} else {
+  stateLabel.textContent = "Your browser doesn't support voice input. Try Chrome.";
+}
+
+function startListening(){
+  if(!apiKey){ setupEl.style.display = 'block'; return; }
+  if(!recognition || recognizing) return;
+  recognizing = true;
+  setState('listening');
+  micBtn.classList.add('active');
+  stateLabel.innerHTML = '<b>Listening...</b> speak naturally';
+  recognition.start();
+}
+
+charWrap.addEventListener('click', startListening);
+micBtn.addEventListener('click', startListening);
+
+function addBubble(who, text){
+  emptyHint.style.display = 'none';
+  const div = document.createElement('div');
+  div.className = `bubble ${who}`;
+  div.innerHTML = `<span class="tag">${who === 'you' ? 'You' : 'Vox'}</span>${text}`;
+  transcriptEl.appendChild(div);
+  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  conversation.push({ role: who === 'you' ? 'user' : 'assistant', content: text });
+}
+
+async function pickAvailableModel(){
+  if(cachedModel) return cachedModel;
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+  const data = await res.json();
+  if(data.error) throw new Error(data.error.message);
+  const candidates = (data.models || []).filter(m =>
+    (m.supportedGenerationMethods || []).includes('generateContent') &&
+    /flash/i.test(m.name) && !/vision|embedding|tts|image/i.test(m.name)
+  );
+  if(candidates.length === 0) throw new Error('No usable Gemini text model found on this key.');
+  const chosen = candidates[candidates.length - 1].name.replace('models/', '');
+  cachedModel = chosen;
+  localStorage.setItem('voice_gemini_model', chosen);
+  return chosen;
+}
+
+async function getAIReply(userText){
+  stateLabel.dataset.busy = '1';
+  setState('thinking');
+  stateLabel.textContent = 'Thinking...';
+
+  try{
+    const model = await pickAvailableModel();
+    const geminiContents = conversation.map((m, i) => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: i === 0 ? `${SYSTEM_PROMPTS[topicSelect.value]}\n\n${m.content}` : m.content }]
+    }));
+
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: geminiContents, generationConfig: { maxOutputTokens: 300, temperature: 0.8 } })
+      }
+    );
+    const data = await res.json();
+    if(data.error){
+      if(/not found|no longer available/i.test(data.error.message) && cachedModel){
+        cachedModel = null;
+        localStorage.removeItem('voice_gemini_model');
+        delete stateLabel.dataset.busy;
+        return getAIReply(userText);
+      }
+      throw new Error(data.error.message);
+    }
+    const reply = data.candidates[0].content.parts.map(p => p.text).join(' ');
+    addBubble('ai', reply);
+    speak(reply);
+  }catch(err){
+    delete stateLabel.dataset.busy;
+    setState(null);
+    stateLabel.textContent = 'Error: ' + err.message;
+  }
+}
+
+function speak(text){
+  setState('speaking');
+  stateLabel.innerHTML = '<b>Vox is replying...</b>';
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'en-IN';
+  utter.rate = 0.98;
+  utter.onend = () => {
+    delete stateLabel.dataset.busy;
+    setState(null);
+    stateLabel.textContent = autoMode ? 'Listening resumes in a moment...' : 'Tap Vox to reply';
+    if(autoMode){ setTimeout(startListening, 500); }
+  };
+  speechSynthesis.speak(utter);
+}
+
+setupStreak();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
